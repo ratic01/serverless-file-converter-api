@@ -5,6 +5,7 @@ import * as sqs from 'aws-cdk-lib/aws-sqs'
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as path from 'path';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
 
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 
@@ -55,6 +56,19 @@ export class CdkStack extends cdk.Stack {
     })
     fileTable.grantWriteData(uploadHandler);
     fileQueue.grantSendMessages(uploadHandler);
+
+
+    //lambda funkcija za konverziju fajlova
+    const converterHandler=new lambda.Function(this, 'ConverterHnadlerFunction',{
+       runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'dist/index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/converterHandler')),
+      environment: {
+        TABLE_NAME: fileTable.tableName,
+      },
+    })
+    fileBucket.grantReadWrite(converterHandler);
+    fileTable.grantWriteData(converterHandler);
 
 
     // Kreiramo REST API
