@@ -60,7 +60,7 @@ export class CdkStack extends cdk.Stack {
 
     //lambda funkcija za konverziju fajlova
     const converterHandler=new lambda.Function(this, 'ConverterHnadlerFunction',{
-       runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'dist/index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/converterHandler')),
       environment: {
@@ -69,6 +69,11 @@ export class CdkStack extends cdk.Stack {
     })
     fileBucket.grantReadWrite(converterHandler);
     fileTable.grantWriteData(converterHandler);
+
+    //povezu lambdu sa redom
+    converterHandler.addEventSource(
+      new lambdaEventSources.SqsEventSource(fileQueue)
+    );
 
 
     // Kreiramo REST API
